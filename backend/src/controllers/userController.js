@@ -1,14 +1,38 @@
-const User = require('./models/User');
+const User = require('../models/User');
 
 const createUser = async (req, res) =>{
     try {
-        const {username, password} = req.body;
-        const newUser = new User( {username, password});
+        const {email, password} = req.body;
+        const newUser = new User( {email, password});
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
+        if(error.code == 11000){
+            console.log("user duplicated error");
+            return res.status(400).json({message:"user already exists..."})
+            
+        }
         res.status(500).json({message:error.message});
     } 
 };
 
-module.exports = createUser;
+const loginUser = async (req,res) =>{
+    try{
+        const {email, password} = req.body;
+        const user = await User.findOne({email});
+
+        if(!user){
+            return res.status().json({message:'email not exist'});
+        }
+
+        if(password !== user.password){
+            return res.status().json({message:'invalid password'});
+        }
+        
+        res.status().json({message:'login successful...'});
+    } catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = {createUser};

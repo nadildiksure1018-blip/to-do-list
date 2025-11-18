@@ -1,20 +1,55 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { LogIn } from 'lucide-react';
+import axios from 'axios';
 
-export default function login() {
+interface FormData {
+  email: string;
+  password:string;
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState('false'); 
+}
+
+export default function Login() {
+
+  const [formData, setFormData] = useState<FormData>({
+    email:'',
+    password:''
+  });
+  const [error, setError] = useState<string>('');
+  const [isSignUp, setIsSignUp] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
 
-  
-  const handleSubmit = ()=>{
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
-    setTimeout( () =>{
-      setIsLoading(false);
-    },200000);
+    setError('');
+
+    if (isSignUp){
+      try{
+        const res = await axios.post('http://localhost:5000/api/user/createUser',formData);
+        console.log(res.data);
+      } catch(error : any) {
+        console.log(error.response?.data || error.message);
+        console.log(error)
+      } finally {
+        setIsLoading(false);
+        setFormData( {
+          email:'',
+          password:''
+        })
+      }
+    } else {
+      
+    }
+
+  }
+
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
   }
 
 
@@ -27,6 +62,15 @@ export default function login() {
                 </div>
             </div>
 
+            <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
+            </h1>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -35,9 +79,10 @@ export default function login() {
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="you@example.com"
@@ -50,9 +95,10 @@ export default function login() {
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
                 minLength={6}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -65,9 +111,21 @@ export default function login() {
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Loading...' : 'Sign In'}
+              {isLoading ? 'Loading...' : 'Sign up'}
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium transition"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
+          </div>
             
         </div>
     </div>
