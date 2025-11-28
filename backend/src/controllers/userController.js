@@ -22,17 +22,18 @@ const loginUser = async (req,res) =>{
         const user = await User.findOne({email});
 
         if(!user){
-            return res.status().json({message:'email not exist'});
+            return res.status(404).json({message:'email not exist'});
         }
 
         if(password !== user.password){
-            return res.status().json({message:'invalid password'});
+            return res.status(404).json({message:'invalid password'});
         }
         
-        res.status().json({message:'login successful...'});
+        res.status(200).json({message:'login successful...'});
+
     } catch(error) {
         res.status(500).json({ message: error.message });
     }
 }
 
-module.exports = {createUser};
+module.exports = {createUser, loginUser};

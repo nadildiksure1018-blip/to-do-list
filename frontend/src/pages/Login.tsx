@@ -28,9 +28,13 @@ export default function Login() {
       try{
         const res = await axios.post('http://localhost:5000/api/user/createUser',formData);
         console.log(res.data);
+
       } catch(error : any) {
+        if(error.response?.status === 400){
+          setError(error.response?.data?.message);
+        }
         console.log(error.response?.data || error.message);
-        console.log(error)
+        
       } finally {
         setIsLoading(false);
         setFormData( {
@@ -39,7 +43,21 @@ export default function Login() {
         })
       }
     } else {
-      
+      try{
+        const res = await axios.post('http://localhost:5000/api/user/loginUser',formData);
+
+      } catch (error : any){
+        if(error.response.status === 404){
+          setError(error.response?.data?.message);
+        }
+
+      } finally {
+        setIsLoading(false);
+        setFormData( {
+          email:'',
+          password:''
+        })
+      }
     }
 
   }
