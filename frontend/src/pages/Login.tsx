@@ -1,33 +1,24 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { LogIn } from 'lucide-react';
+import { useAuth } from '../AuthContext';
 import axios from 'axios';
 
-interface FormData {
-  email: string;
-  password:string;
-
-}
 
 export default function Login() {
-
-  const [formData, setFormData] = useState<FormData>({
-    email:'',
-    password:''
-  });
+  const {login, register, loading} = useAuth();
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isSignUp, setIsSignUp] = useState(false); 
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
     if (isSignUp){
       try{
-        const res = await axios.post('http://localhost:5000/api/user/createUser',formData);
-        console.log(res.data);
+        await login(email,password);
 
       } catch(error : any) {
         if(error.response?.status === 400){
@@ -35,39 +26,19 @@ export default function Login() {
         }
         console.log(error.response?.data || error.message);
         
-      } finally {
-        setIsLoading(false);
-        setFormData( {
-          email:'',
-          password:''
-        })
       }
+
     } else {
       try{
-        const res = await axios.post('http://localhost:5000/api/user/loginUser',formData);
+        await register(email,password);
 
       } catch (error : any){
         if(error.response.status === 404){
           setError(error.response?.data?.message);
         }
 
-      } finally {
-        setIsLoading(false);
-        setFormData( {
-          email:'',
-          password:''
-        })
       }
     }
-
-  }
-
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>)=>{
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
   }
 
 
@@ -97,10 +68,9 @@ export default function Login() {
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="you@example.com"
@@ -113,10 +83,9 @@ export default function Login() {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e)=> setPassword(e.target.value)}
                 required
                 minLength={6}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -126,10 +95,10 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Loading...' : 'Sign up'}
+              {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
             </button>
           </form>
 

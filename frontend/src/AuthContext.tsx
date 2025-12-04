@@ -10,8 +10,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{success:boolean,message:any}>;
+  register: (email: string, password: string, name?: string) => Promise<{success:boolean,message:any}>;
   logout: () => void;
 }
 
@@ -22,7 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user/token from localStorage on mount
+  
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -40,34 +40,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const response = await axios.post("/api/auth/login", { email, password });
-      const { token, user } = response.data;
+      const { token, user, message } = response.data;
 
       setToken(token);
       setUser(user);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      return {success: true, message} //check finally
+
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Login failed");
+      const message = (error.response?.data?.message || "Login failed");
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
   };
 
   // Register function
-  const register = async (email: string, password: string, name?: string) => {
+  const register = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await axios.post("/api/auth/register", { email, password, name });
-      const { token, user } = response.data;
+      const response = await axios.post("http://localhost:5000/api/user/createUser", { email, password});
+      return{ 
+        success: true,
+        message: response.data.message
+      }
 
-      setToken(token);
-      setUser(user);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Registration failed");
+      const message = (error.response?.data?.message || "Registration failed");
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
